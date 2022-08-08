@@ -4,13 +4,12 @@ import pprint
 
 
 vk_id = 739978517
-vktoken = "vk1.a.6B5LBGoSQK41T7B9rTJf4WaiGjQPeZ5nSlJHpDYrt6h7hxIL2xUPW0twZMI8gZTOOUg9DSBH-mcVydncjrpHvQ9dUCUUL77wxCx7APZ4Hrywa3IqQ9RkRQhTnNNcIhDq3qWPA5q8R1fRNY_fou15PDMkUSd1tGc_osCFkY9dpASK-GzYmjK985ZvJie-rL3O"
-token = 'AQAAAAA3hrAhAADLW6iygdsEFkmmmDqlFp35p-U'
+
 
 
 class MyVk:  # объявляем класс вк
     def __init__(self):
-        self.token = "vk1.a.6B5LBGoSQK41T7B9rTJf4WaiGjQPeZ5nSlJHpDYrt6h7hxIL2xUPW0twZMI8gZTOOUg9DSBH-mcVydncjrpHvQ9dUCUUL77wxCx7APZ4Hrywa3IqQ9RkRQhTnNNcIhDq3qWPA5q8R1fRNY_fou15PDMkUSd1tGc_osCFkY9dpASK-GzYmjK985ZvJie-rL3O"
+        self.token = ""
         self.id = 739978517
         self.likes = 0
 
@@ -100,7 +99,7 @@ if __name__ == '__main__':
     Number_photo = 5
     vk_photo = mevk.get_photos(Number_photo)
     name_dir = 'vk_pic'
-    uploader = YaUploader(token)
+    uploader = YaUploader.token
     uploader.get_headers(name_dir,vk_photo)
     path_file = uploader.mk_dir(name_dir)
     result = uploader.upload(name_dir,vk_photo,mevk.likes)
