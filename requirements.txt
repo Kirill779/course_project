@@ -1,0 +1,2 @@
+requests~=2.28.1
+yadisk~=1.2.15
