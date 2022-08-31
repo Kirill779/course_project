@@ -6,10 +6,6 @@ from time import sleep
 import pprint
 
 
-vk_id = 739978517
-vktoken = ''
-token = ''
-
 class MyVk:  # объявляем класс вк
     def __init__(self):
         self.token = ""
@@ -32,38 +28,43 @@ class MyVk:  # объявляем класс вк
 
     def get_photos(self,NPh): # получаем фото
         data = self.get_photo_data()
-        self.likes = (data['response']['items'][0]['likes']['count']) # выделяем лайки
-        my_data = data['response']['items'][0]['sizes']
-        photo = {}  # создаем два словаря - фото и фото на количество
+        my_data = data['response']['items']
+        # создаем два словаря - фото и фото на количество
+        photo = {}
         photo_NPh = {}
         count_photo = 0     # так же считаем общее количество фото
         print("Считаем фото")
-        # используем прогресс-бар
-        for url_photo in tqdm(my_data):
-            sleep(0.3) #задержка в секундах
-            photo[str(count_photo)] = url_photo['height'],url_photo['width'],url_photo['url'],url_photo['type']
-            count_photo += 1
         print()
-        i = 0
-        if len(photo) <= NPh : # если фото меньше заданного, то забираем все фото
-            photo_NPh = photo
+        # используем прогресс-бар
+        for p in tqdm(my_data):
+            sleep(1)
+            #выбираем фото максимального размера
+            max_photo = p['sizes'][0]
+            for q in range(len(p['sizes'])):
+                url_photo = p['sizes'][q]
+                if url_photo['type'] == 'z':
+                    max_photo = url_photo
+                    break
+                elif url_photo['height'] > max_photo['height'] or url_photo['width'] > max_photo['width'] :
+                    max_photo = url_photo
+            photo[count_photo] = max_photo
+            photo[count_photo]['likes'] = p['likes']['count']
+            count_photo += 1
+        print('Выбираем фото: ')
+        x = 0
+        while x < NPh:
+            photo_NPh[x] = photo[x]
+            x += 1
+        if len(photo) <= NPh: # если фото меньше заданного, то забираем все фото
+            print('Все фото выбраны')
         else:
-            print("Выбираем фото")
-            # используем прогресс-бар
-            for i in trange(len(photo)):
-                sleep(0.3)  # задержка в секундах
-                if len(photo_NPh) < NPh :
-                    photo_NPh[str(i)] = photo[str(i)]
-                else:
-                    for j in trange(len(photo_NPh)):  # если фото больше - начинаем выбирать нужные фото
-                        sleep(0.3) #задержка в секундах
-                        if photo[str(i)][0] > photo_NPh[str(j)][0]or (photo[str(i)][0] > photo_NPh[str(j)][0]and photo[str(i)][1] > photo_NPh[str(j)][1]):
-                            if j < len(photo_NPh):
-                                photo_NPh[str(j+1)] = photo_NPh[str(j)]
-                            photo_NPh[str(j)] = photo[str(i)]
-                            break
-
-            i += 1
+            j=0
+            for i in tqdm(photo_NPh):
+                sleep(1)
+                for j in photo:
+                    if photo[j]['height'] > photo_NPh[i]['height']:
+                        photo_NPh[i] = photo[j]
+                    break
         return photo_NPh # возвращаем словарь фото
 
 
@@ -86,17 +87,18 @@ class YaUploader:   # объявляем класс яндекс диска
         requests.put(url=mkurl, params=self.dirparam, headers=self.heads).json()
 
 
-    def upload(self, path_file, photos,likes):  # записываем файлы на Ядиск
+    def upload(self, path_file, photos):  # записываем файлы на Ядиск
         file_for_json = []                    # собираем словарь для файла json
         i = 0
         print('\n',"Грузим фото в яднекс")
         # используем прогресс-бар
-        for photo in tqdm(photos.values()):
-            self.param['url'] = photo[2]
+        for photo in tqdm(photos):
+            sleep(1)
+            self.param['url'] = photos[photo]['url']
             file_for_json.append({'file_name': '', 'size': ''})
-            path_disk = path_file + "/" + str(photo[0])  + str(likes) + '.'+'jpeg'
+            path_disk = path_file + "/" + str(photo)  + str(photos[photo]['likes']) + '.'+'jpeg'
             file_for_json[i]['file_name'] += path_disk
-            file_for_json[i]['size'] += photo[3]
+            file_for_json[i]['size'] += photos[photo]['type']
             self.param['path'] = path_disk
             i += 1
             r = requests.post(url=self.url, params=self.param, headers=self.heads).json
@@ -109,14 +111,17 @@ class YaUploader:   # объявляем класс яндекс диска
 
 
 if __name__ == '__main__':
-    mevk = MyVk()
+    vk_id = 739978517
+    vktoken = ''
+
     Number_photo = 5
-    vk_photo = mevk.get_photos(Number_photo)
     name_dir = 'vk_pic'
     token = ''
+    mevk = MyVk()
+    vk_photo = mevk.get_photos(Number_photo)
     uploader = YaUploader(token)
     uploader.heads
     uploader.get_headers(name_dir,vk_photo)
     path_file = uploader.mk_dir(name_dir)
-    result = uploader.upload(name_dir,vk_photo,mevk.likes)
+    result = uploader.upload(name_dir,vk_photo)
     print(result)
